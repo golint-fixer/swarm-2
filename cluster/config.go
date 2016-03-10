@@ -67,7 +67,6 @@ func BuildContainerConfig(c dockerclient.ContainerConfig) *ContainerConfig {
 		constraints []string
 		env         []string
 	)
-
 	// only for tests
 	if c.Labels == nil {
 		c.Labels = make(map[string]string)
@@ -77,7 +76,6 @@ func BuildContainerConfig(c dockerclient.ContainerConfig) *ContainerConfig {
 	if labels, ok := c.Labels[SwarmLabelNamespace+".affinities"]; ok {
 		json.Unmarshal([]byte(labels), &affinities)
 	}
-
 	// parse constraints from labels (ex. docker run --label 'com.docker.swarm.constraints=["region==us-east","storage==ssd"]')
 	if labels, ok := c.Labels[SwarmLabelNamespace+".constraints"]; ok {
 		json.Unmarshal([]byte(labels), &constraints)
@@ -93,7 +91,6 @@ func BuildContainerConfig(c dockerclient.ContainerConfig) *ContainerConfig {
 			env = append(env, e)
 		}
 	}
-
 	// remove affinities/constraints from env
 	c.Env = env
 
@@ -110,7 +107,6 @@ func BuildContainerConfig(c dockerclient.ContainerConfig) *ContainerConfig {
 			c.Labels[SwarmLabelNamespace+".constraints"] = string(labels)
 		}
 	}
-
 	consolidateResourceFields(&c)
 
 	return &ContainerConfig{c}

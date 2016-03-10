@@ -76,6 +76,7 @@ func newListener(proto, addr string, tlsConfig *tls.Config) (net.Listener, error
 // The expected format for a host string is [protocol://]address. The protocol
 // must be either "tcp" or "unix", with "tcp" used by default if not specified.
 func (s *Server) ListenAndServe() error {
+	fmt.Println("ListenAndServe")
 	chErrors := make(chan error, len(s.hosts))
 
 	for _, host := range s.hosts {

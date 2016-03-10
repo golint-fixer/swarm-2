@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/pkg/version"
 	"github.com/samalba/dockerclient"
 	"github.com/samalba/dockerclient/nopclient"
+	libvirtplusclient "github.com/yansmallb/libvirtplus-client"
 )
 
 const (
@@ -75,6 +76,7 @@ type Engine struct {
 	networks        map[string]*Network
 	volumes         map[string]*Volume
 	client          dockerclient.Client
+	virtclient      libvirtplusclient.LibvirtplusClient
 	eventHandler    EventHandler
 	healthy         bool
 	overcommitRatio int64
@@ -110,18 +112,22 @@ func (e *Engine) Connect(config *tls.Config) error {
 		return err
 	}
 	e.IP = addr.IP.String()
-
 	c, err := dockerclient.NewDockerClientTimeout("tcp://"+e.Addr, config, time.Duration(requestTimeout))
 	if err != nil {
 		return err
 	}
+	lc, err := libvirtplusclient.NewLibvirtplusClientTimeout("tcp://"+host+":2376", config, time.Duration(requestTimeout))
+	if err != nil {
+		return err
+	}
 
-	return e.ConnectWithClient(c)
+	return e.ConnectWithClient(c, *lc)
 }
 
 // ConnectWithClient is exported
-func (e *Engine) ConnectWithClient(client dockerclient.Client) error {
+func (e *Engine) ConnectWithClient(client dockerclient.Client, virtclient libvirtplusclient.LibvirtplusClient) error {
 	e.client = client
+	e.virtclient = virtclient
 
 	// Fetch the engine labels.
 	if err := e.updateSpecs(); err != nil {
@@ -297,8 +303,18 @@ func (e *Engine) RefreshVolumes() error {
 // FIXME: unexport this method after mesos scheduler stops using it directly
 func (e *Engine) RefreshContainers(full bool) error {
 	containers, err := e.client.ListContainers(true, false, "")
+	log.Debugf("DockerClient ListContainers:%v\n", containers)
 	if err != nil {
 		return err
+	}
+	virtcontainers, err := e.virtclient.ListContainers()
+	log.Debugf("Virtclient ListContainers:%v\n", virtcontainers)
+
+	if err != nil {
+		return err
+	}
+	for _, vc := range virtcontainers {
+		containers = append(containers, vc)
 	}
 
 	merged := make(map[string]*Container)
@@ -334,6 +350,18 @@ func (e *Engine) refreshContainer(ID string, full bool) (*Container, error) {
 	}
 
 	if len(containers) == 0 {
+		// The container not a docker container, search libvirt containers
+		libcontainers, err := e.virtclient.ListContainers()
+		if err != nil {
+			return nil, err
+		}
+		for _, lc := range libcontainers {
+			if lc.Id == ID {
+				err = e.RefreshContainers(full)
+				return nil, err
+			}
+		}
+
 		// The container doesn't exist on the engine, remove it.
 		e.Lock()
 		delete(e.containers, ID)
@@ -370,16 +398,20 @@ func (e *Engine) updateContainer(c dockerclient.Container, containers map[string
 	if full {
 		info, err := e.client.InspectContainer(c.Id)
 		if err != nil {
-			return nil, err
+			info, err = e.virtclient.InspectContainer(c.Id)
+			if err != nil {
+				return nil, err
+			}
 		}
 		// Convert the ContainerConfig from inspect into our own
 		// cluster.ContainerConfig.
+		if info.Config == nil {
+			info.Config = &dockerclient.ContainerConfig{}
+		}
 		container.Config = BuildContainerConfig(*info.Config)
-
 		// FIXME remove "duplicate" lines and move this to cluster/config.go
 		container.Config.CpuShares = container.Config.CpuShares * e.Cpus / 1024.0
 		container.Config.HostConfig.CpuShares = container.Config.CpuShares
-
 		// Save the entire inspect back into the container.
 		container.Info = *info
 	}
@@ -389,7 +421,6 @@ func (e *Engine) updateContainer(c dockerclient.Container, containers map[string
 	container.Container = c
 	containers[container.Id] = container
 	e.Unlock()
-
 	return containers, nil
 }
 
@@ -398,7 +429,7 @@ func (e *Engine) refreshLoop() {
 
 	for {
 		var err error
-
+		log.Debugln("refreshLoop")
 		// Wait for the delayer or quit if we get stopped.
 		select {
 		case <-e.refreshDelayer.Wait():
@@ -495,7 +526,7 @@ func (e *Engine) Create(config *ContainerConfig, name string, pullImage bool) (*
 		id     string
 		client = e.client
 	)
-
+	log.Debugf("Create Containers:%+v\n", config)
 	// Convert our internal ContainerConfig into something Docker will
 	// understand.  Start by making a copy of the internal ContainerConfig as
 	// we don't want to mess with the original.
@@ -507,21 +538,26 @@ func (e *Engine) Create(config *ContainerConfig, name string, pullImage bool) (*
 	dockerConfig.CpuShares = int64(math.Ceil(float64(config.CpuShares*1024) / float64(e.Cpus)))
 	dockerConfig.HostConfig.CpuShares = dockerConfig.CpuShares
 
-	if id, err = client.CreateContainer(&dockerConfig, name); err != nil {
-		// If the error is other than not found, abort immediately.
-		if err != dockerclient.ErrImageNotFound || !pullImage {
+	if e.isLibvirtContainerByConfig(config) {
+		if id, err = e.virtclient.CreateContainer(&dockerConfig, name); err != nil {
 			return nil, err
 		}
-		// Otherwise, try to pull the image...
-		if err = e.Pull(config.Image, nil); err != nil {
-			return nil, err
-		}
-		// ...And try again.
+	} else {
 		if id, err = client.CreateContainer(&dockerConfig, name); err != nil {
-			return nil, err
+			// If the error is other than not found, abort immediately.
+			if err != dockerclient.ErrImageNotFound || !pullImage {
+				return nil, err
+			}
+			// Otherwise, try to pull the image...
+			if err = e.Pull(config.Image, nil); err != nil {
+				return nil, err
+			}
+			// ...And try again.
+			if id, err = client.CreateContainer(&dockerConfig, name); err != nil {
+				return nil, err
+			}
 		}
 	}
-
 	// Register the container immediately while waiting for a state refresh.
 	// Force a state refresh to pick up the newly created container.
 	e.refreshContainer(id, true)
@@ -530,7 +566,7 @@ func (e *Engine) Create(config *ContainerConfig, name string, pullImage bool) (*
 
 	e.RLock()
 	defer e.RUnlock()
-
+	fmt.Printf("Create Containers after create:%+v\n", e.containers[id])
 	container := e.containers[id]
 	if container == nil {
 		err = errors.New("Container created but refresh didn't report it back")
@@ -540,10 +576,16 @@ func (e *Engine) Create(config *ContainerConfig, name string, pullImage bool) (*
 
 // RemoveContainer a container from the engine.
 func (e *Engine) RemoveContainer(container *Container, force, volumes bool) error {
-	if err := e.client.RemoveContainer(container.Id, force, volumes); err != nil {
-		return err
+	log.Debugf("Remove Containers:%+v\n", container)
+	if !e.isLibvirtContainerById(container.Id) {
+		if err := e.client.RemoveContainer(container.Id, force, volumes); err != nil {
+			return err
+		}
+	} else {
+		if err := e.virtclient.RemoveContainer(container.Id); err != nil {
+			return err
+		}
 	}
-
 	// Remove the container from the state. Eventually, the state refresh loop
 	// will rewrite this.
 	e.Lock()
@@ -785,4 +827,26 @@ func (e *Engine) TagImage(IDOrName string, repo string, tag string, force bool) 
 
 	// refresh image
 	return e.RefreshImages()
+}
+
+func (e *Engine) isLibvirtContainerByConfig(config *ContainerConfig) bool {
+	for label, value := range config.Labels {
+		if label == "type" && value == "libvirt" {
+			return true
+		}
+	}
+	return false
+}
+
+func (e *Engine) isLibvirtContainerById(Id string) bool {
+	containers, err := e.virtclient.ListContainers()
+	if err != nil {
+		return false
+	}
+	for _, container := range containers {
+		if container.Id == Id {
+			return true
+		}
+	}
+	return false
 }

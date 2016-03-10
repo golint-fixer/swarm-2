@@ -418,7 +418,8 @@ func postContainersCreate(c *context, w http.ResponseWriter, r *http.Request) {
 		httpError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	fmt.Printf("handlers.postContainersCreate   config:%v\n", cluster.BuildContainerConfig(config))
+	fmt.Printf("handlers.postContainersCreate    name:%v\n", name)
 	container, err := c.cluster.CreateContainer(cluster.BuildContainerConfig(config), name)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "Conflict") {

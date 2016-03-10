@@ -237,12 +237,15 @@ func manage(c *cli.Context) {
 		log.Fatalf("discovery required to manage a cluster. See '%s manage --help'.", c.App.Name)
 	}
 	discovery := createDiscovery(uri, c, c.StringSlice("discovery-opt"))
+
+	// init strategy
 	s, err := strategy.New(c.String("strategy"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// see https://github.com/codegangsta/cli/issues/160
+	// init filter
 	names := c.StringSlice("filter")
 	if c.IsSet("filter") || c.IsSet("f") {
 		names = names[DefaultFilterNumber:]
@@ -252,6 +255,7 @@ func manage(c *cli.Context) {
 		log.Fatal(err)
 	}
 
+	// init scheduler
 	sched := scheduler.New(s, fs)
 	var cl cluster.Cluster
 	switch c.String("cluster-driver") {
