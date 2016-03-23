@@ -7,6 +7,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/docker/swarm/discovery"
+	ilockerjoin "github.com/yansmallb/ilocker/join"
+	"strings"
 )
 
 func checkAddrFormat(addr string) bool {
@@ -48,6 +50,7 @@ func join(c *cli.Context) {
 		log.Fatal(err)
 	}
 
+	ilocker_join(c.Args()[0], addr, hb)
 	for {
 		log.WithFields(log.Fields{"addr": addr, "discovery": dflag}).Infof("Registering on the discovery service every %s...", hb)
 		if err := d.Register(addr); err != nil {
@@ -55,4 +58,19 @@ func join(c *cli.Context) {
 		}
 		time.Sleep(hb)
 	}
+}
+
+func ilocker_join(etcdpath string, addr string, heartbeat time.Duration) {
+	etcdpath = strings.Replace(etcdpath, "etcd://", "", 1)
+	endpoints := strings.Split(etcdpath, ",")
+	etcdpath = ""
+	for index := range endpoints {
+		etcdpath += "http://" + endpoints[index]
+		if index < len(endpoints)-1 {
+			etcdpath += ","
+		}
+	}
+	reg := regexp.MustCompile(":[0-9]{1,5}$")
+	addr = reg.ReplaceAllString(addr, ":2374")
+	go ilockerjoin.Join(etcdpath, addr, heartbeat)
 }

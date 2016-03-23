@@ -51,6 +51,7 @@ var routes = map[string]map[string]handler{
 		"/networks/{networkid:.*}":        proxyNetwork,
 		"/volumes":                        getVolumes,
 		"/volumes/{volumename:.*}":        proxyVolume,
+		"/machines":                       getMachines,
 	},
 	"POST": {
 		"/auth":                               proxyRandom,

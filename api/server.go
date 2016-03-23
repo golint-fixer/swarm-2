@@ -6,9 +6,18 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
+	ilockeretcd "github.com/yansmallb/ilocker/etcdclient"
 )
+
+//machines for md5
+type Machines struct {
+	List []string `json:"list"`
+}
+
+var MachinesList Machines
 
 // DefaultDockerPort is the default port to listen on for incoming connections.
 const DefaultDockerPort = ":2375"
@@ -120,5 +129,29 @@ func (s *Server) ListenAndServe() error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (s *Server) IlockerServer(etcdpath string, hb time.Duration) error {
+	fmt.Println("IlockerServer")
+	etcdpath = strings.Replace(etcdpath, "etcd://", "", 1)
+	endpoints := strings.Split(etcdpath, ",")
+	etcdpath = ""
+	for index := range endpoints {
+		etcdpath += "http://" + endpoints[index]
+		if index < len(endpoints)-1 {
+			etcdpath += ","
+		}
+	}
+	e, err := ilockeretcd.NewEtcdClient(etcdpath)
+	if err != nil {
+		return err
+	}
+	go func() {
+		for {
+			MachinesList.List, _ = e.ListKey()
+			time.Sleep(hb)
+		}
+	}()
 	return nil
 }

@@ -406,6 +406,11 @@ func getContainerJSON(c *context, w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+//GET /machines
+func getMachines(c *context, w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(MachinesList)
+}
+
 // POST /containers/create
 func postContainersCreate(c *context, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()

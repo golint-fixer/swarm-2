@@ -645,7 +645,7 @@ ConnectAll	Godeps/_workspace/src/github.com/samuel/go-zookeeper/zk/server_help.g
 ConnectNetwork	Godeps/_workspace/src/github.com/samalba/dockerclient/dockerclient.go	/^func (client *DockerClient) ConnectNetwork(id, container string) error {$/;"	f
 ConnectNetwork	Godeps/_workspace/src/github.com/samalba/dockerclient/mockclient/mock.go	/^func (client *MockClient) ConnectNetwork(id, container string) error {$/;"	f
 ConnectNetwork	Godeps/_workspace/src/github.com/samalba/dockerclient/nopclient/nop.go	/^func (client *NopClient) ConnectNetwork(id, container string) error {$/;"	f
-ConnectWithClient	cluster/engine.go	/^func (e *Engine) ConnectWithClient(client dockerclient.Client) error {$/;"	f
+ConnectWithClient	cluster/engine.go	/^func (e *Engine) ConnectWithClient(client dockerclient.Client, virtclient libvirtplusclient.LibvirtplusClient) error {$/;"	f
 ConnectWithDialer	Godeps/_workspace/src/github.com/samuel/go-zookeeper/zk/conn.go	/^func ConnectWithDialer(servers []string, sessionTimeout time.Duration, dialer Dialer) (*Conn, <-chan Event, error) {$/;"	f
 Connected	Godeps/_workspace/src/github.com/mesos/mesos-go/scheduler/scheduler.go	/^func (driver *MesosSchedulerDriver) Connected() bool {$/;"	f
 Connector	Godeps/_workspace/src/github.com/mesos/mesos-go/detector/zoo/types.go	/^type Connector interface {$/;"	t
@@ -3424,6 +3424,7 @@ IPAMConfig	Godeps/_workspace/src/github.com/samalba/dockerclient/types.go	/^type
 Id	Godeps/_workspace/src/github.com/pborman/uuid/dce.go	/^func (uuid UUID) Id() (uint32, bool) {$/;"	f
 IllegalState	Godeps/_workspace/src/github.com/mesos/mesos-go/auth/sasl/mech/interface.go	/^func IllegalState(m Interface, data []byte) (StepFunc, []byte, error) {$/;"	f
 IllegalStateErr	Godeps/_workspace/src/github.com/mesos/mesos-go/auth/sasl/mech/interface.go	/^var ($/;"	v
+Ilocker_server	api/server.go	/^func (s *Server) Ilocker_server(etcdpath string, hb time.Duration) error {$/;"	f
 Image	Godeps/_workspace/src/github.com/samalba/dockerclient/types.go	/^type Image struct {$/;"	t
 Image	cluster/engine.go	/^func (e *Engine) Image(IDOrName string) *Image {$/;"	f
 Image	cluster/image.go	/^type Image struct {$/;"	t
@@ -3750,6 +3751,8 @@ MSI	Godeps/_workspace/src/github.com/stretchr/objx/map_test.go	/^func (c *Conver
 MSI	Godeps/_workspace/src/github.com/stretchr/objx/type_specific_codegen.go	/^func (v *Value) MSI(optionalDefault ...map[string]interface{}) map[string]interface{} {$/;"	f
 MSIConvertable	Godeps/_workspace/src/github.com/stretchr/objx/map.go	/^type MSIConvertable interface {$/;"	t
 MSISlice	Godeps/_workspace/src/github.com/stretchr/objx/type_specific_codegen.go	/^func (v *Value) MSISlice(optionalDefault ...[]map[string]interface{}) []map[string]interface{} {$/;"	f
+MachinesList	api/handlers.go	/^var MachinesList []string$/;"	v
+MachinesList	api/server.go	/^var MachinesList []string$/;"	v
 Map	Godeps/_workspace/src/github.com/stretchr/objx/map.go	/^type Map map[string]interface{}$/;"	t
 MapBySlice	Godeps/_workspace/src/github.com/ugorji/go/codec/helper.go	/^type MapBySlice interface {$/;"	t
 Marshal	Godeps/_workspace/src/github.com/gogo/protobuf/proto/all_test.go	/^func (f fakeMarshaler) Marshal() ([]byte, error) {$/;"	f
@@ -5285,6 +5288,7 @@ SetFormatter	Godeps/_workspace/src/github.com/Sirupsen/logrus/exported.go	/^func
 SetHandler	api/server.go	/^func (d *dispatcher) SetHandler(handler http.Handler) {$/;"	f
 SetHandler	api/server.go	/^func (s *Server) SetHandler(handler http.Handler) {$/;"	f
 SetLevel	Godeps/_workspace/src/github.com/Sirupsen/logrus/exported.go	/^func SetLevel(level Level) {$/;"	f
+SetMachinesList	api/server.go	/^func SetMachinesList(ml []string) {$/;"	f
 SetNodeID	Godeps/_workspace/src/github.com/pborman/uuid/node.go	/^func SetNodeID(id []byte) bool {$/;"	f
 SetNodeInterface	Godeps/_workspace/src/github.com/pborman/uuid/node.go	/^func SetNodeInterface(name string) bool {$/;"	f
 SetOptions	Godeps/_workspace/src/github.com/coreos/etcd/client/keys.go	/^type SetOptions struct {$/;"	t
@@ -9769,6 +9773,7 @@ getInfo	api/handlers.go	/^func getInfo(c *context, w http.ResponseWriter, r *htt
 getInternal	Godeps/_workspace/src/github.com/hashicorp/consul/api/kv.go	/^func (k *KV) getInternal(key string, params map[string]string, q *QueryOptions) (*http.Response, *QueryMeta, error) {$/;"	f
 getLen	Godeps/_workspace/src/github.com/stretchr/testify/assert/assertions.go	/^func getLen(x interface{}) (ok bool, length int) {$/;"	f
 getLibprocessFrom	Godeps/_workspace/src/github.com/mesos/mesos-go/messenger/http_transporter.go	/^func getLibprocessFrom(r *http.Request) (*upid.UPID, error) {$/;"	f
+getMachines	api/handlers.go	/^func getMachines(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
 getMaxChildrenRequest	Godeps/_workspace/src/github.com/samuel/go-zookeeper/zk/structs.go	/^type getMaxChildrenRequest pathRequest$/;"	t
 getMaxChildrenResponse	Godeps/_workspace/src/github.com/samuel/go-zookeeper/zk/structs.go	/^type getMaxChildrenResponse struct {$/;"	t
 getMessageName	Godeps/_workspace/src/github.com/mesos/mesos-go/messenger/messenger.go	/^func getMessageName(msg proto.Message) string {$/;"	f
@@ -9863,6 +9868,8 @@ httpRedirect	Godeps/_workspace/src/github.com/stretchr/testify/assert/http_asser
 httpWatcher	Godeps/_workspace/src/github.com/coreos/etcd/client/keys.go	/^type httpWatcher struct {$/;"	t
 ifname	Godeps/_workspace/src/github.com/pborman/uuid/node.go	/^	interfaces []net.Interface \/\/ cached list of interfaces$/;"	v
 ignoreChanged	Godeps/_workspace/src/github.com/mesos/mesos-go/detector/zoo/detect.go	/^var ignoreChanged = detector.OnMasterChanged(func(*mesos.MasterInfo) {})$/;"	v
+ilocker_join	cli/join.go	/^func ilocker_join(etcdpath string, addr string, heartbeat time.Duration) {$/;"	f
+ilocker_server	cli/manage.go	/^func ilocker_server(etcdpath string, hb time.Duration) error {$/;"	f
 implementsIntf	Godeps/_workspace/src/github.com/ugorji/go/codec/helper_internal.go	/^func implementsIntf(typ, iTyp reflect.Type) (success bool, indir int8) {$/;"	f
 inProgress	Godeps/_workspace/src/github.com/mesos/mesos-go/scheduler/scheduler.go	/^func (a *authenticationAttempt) inProgress() bool {$/;"	f
 includeElement	Godeps/_workspace/src/github.com/stretchr/testify/assert/assertions.go	/^func includeElement(list interface{}, element interface{}) (ok, found bool) {$/;"	f
@@ -9959,6 +9966,8 @@ isEmpty	Godeps/_workspace/src/github.com/stretchr/testify/assert/assertions.go	/
 isEmptyValue	Godeps/_workspace/src/github.com/ugorji/go/codec/helper_internal.go	/^func isEmptyValue(v reflect.Value) bool {$/;"	f
 isExtensionField	Godeps/_workspace/src/github.com/gogo/protobuf/proto/extensions.go	/^func isExtensionField(pb extendableProto, field int32) bool {$/;"	f
 isIdentOrNumberChar	Godeps/_workspace/src/github.com/gogo/protobuf/proto/text_parser.go	/^func isIdentOrNumberChar(c byte) bool {$/;"	f
+isLibvirtContainerByConfig	cluster/engine.go	/^func (e *Engine) isLibvirtContainerByConfig(config *ContainerConfig) bool {$/;"	f
+isLibvirtContainerById	cluster/engine.go	/^func (e *Engine) isLibvirtContainerById(Id string) bool {$/;"	f
 isLiteral	Godeps/_workspace/src/github.com/golang/glog/glog.go	/^func isLiteral(pattern string) bool {$/;"	f
 isMarshaler	Godeps/_workspace/src/github.com/gogo/protobuf/proto/properties.go	/^func isMarshaler(t reflect.Type) bool {$/;"	f
 isMutableKind	Godeps/_workspace/src/github.com/ugorji/go/codec/helper.go	/^func isMutableKind(k reflect.Kind) (v bool) {$/;"	f

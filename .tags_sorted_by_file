@@ -10651,6 +10651,7 @@ Write	api/flusher.go	/^func (wf *WriteFlusher) Write(b []byte) (n int, err error
 WriteFlusher	api/flusher.go	/^type WriteFlusher struct {$/;"	t
 api	api/flusher.go	/^package api$/;"	p
 APIVERSION	api/handlers.go	/^const APIVERSION = "1.21"$/;"	c
+MachinesList	api/handlers.go	/^var MachinesList []string$/;"	v
 api	api/handlers.go	/^package api$/;"	p
 deleteContainers	api/handlers.go	/^func deleteContainers(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
 deleteImages	api/handlers.go	/^func deleteImages(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
@@ -10662,6 +10663,7 @@ getEvents	api/handlers.go	/^func getEvents(c *context, w http.ResponseWriter, r 
 getImages	api/handlers.go	/^func getImages(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
 getImagesJSON	api/handlers.go	/^func getImagesJSON(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
 getInfo	api/handlers.go	/^func getInfo(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
+getMachines	api/handlers.go	/^func getMachines(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
 getNetworks	api/handlers.go	/^func getNetworks(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
 getVersion	api/handlers.go	/^func getVersion(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
 getVolumes	api/handlers.go	/^func getVolumes(c *context, w http.ResponseWriter, r *http.Request) {$/;"	f
@@ -10701,12 +10703,15 @@ SetPrimary	api/replica.go	/^func (p *Replica) SetPrimary(primary string) {$/;"	f
 api	api/replica.go	/^package api$/;"	p
 localRoutes	api/replica.go	/^var localRoutes = []string{"\/info", "\/_ping"}$/;"	v
 DefaultDockerPort	api/server.go	/^const DefaultDockerPort = ":2375"$/;"	c
+Ilocker_server	api/server.go	/^func (s *Server) Ilocker_server(etcdpath string, hb time.Duration) error {$/;"	f
 ListenAndServe	api/server.go	/^func (s *Server) ListenAndServe() error {$/;"	f
+MachinesList	api/server.go	/^var MachinesList []string$/;"	v
 NewServer	api/server.go	/^func NewServer(hosts []string, tlsConfig *tls.Config) *Server {$/;"	f
 ServeHTTP	api/server.go	/^func (d *dispatcher) ServeHTTP(w http.ResponseWriter, r *http.Request) {$/;"	f
 Server	api/server.go	/^type Server struct {$/;"	t
 SetHandler	api/server.go	/^func (d *dispatcher) SetHandler(handler http.Handler) {$/;"	f
 SetHandler	api/server.go	/^func (s *Server) SetHandler(handler http.Handler) {$/;"	f
+SetMachinesList	api/server.go	/^func SetMachinesList(ml []string) {$/;"	f
 api	api/server.go	/^package api$/;"	p
 dispatcher	api/server.go	/^type dispatcher struct {$/;"	t
 newListener	api/server.go	/^func newListener(proto, addr string, tlsConfig *tls.Config) (net.Listener, error) {$/;"	f
@@ -10775,6 +10780,7 @@ cli	cli/help.go	/^package cli$/;"	p
 init	cli/help.go	/^func init() {$/;"	f
 checkAddrFormat	cli/join.go	/^func checkAddrFormat(addr string) bool {$/;"	f
 cli	cli/join.go	/^package cli$/;"	p
+ilocker_join	cli/join.go	/^func ilocker_join(etcdpath string, addr string, heartbeat time.Duration) {$/;"	f
 join	cli/join.go	/^func join(c *cli.Context) {$/;"	f
 TestCheckAddrFormat	cli/join_test.go	/^func TestCheckAddrFormat(t *testing.T) {$/;"	f
 cli	cli/join_test.go	/^package cli$/;"	p
@@ -10787,6 +10793,7 @@ createDiscovery	cli/manage.go	/^func createDiscovery(uri string, c *cli.Context,
 defaultRecoverTime	cli/manage.go	/^	leaderElectionPath = "docker\/swarm\/leader"$/;"	c
 follow	cli/manage.go	/^func follow(follower *leadership.Follower, replica *api.Replica, addr string) {$/;"	f
 getDiscoveryOpt	cli/manage.go	/^func getDiscoveryOpt(c *cli.Context) map[string]string {$/;"	f
+ilocker_server	cli/manage.go	/^func ilocker_server(etcdpath string, hb time.Duration) error {$/;"	f
 leaderElectionPath	cli/manage.go	/^const ($/;"	c
 loadTLSConfig	cli/manage.go	/^func loadTLSConfig(ca, cert, key string, verify bool) (*tls.Config, error) {$/;"	f
 logHandler	cli/manage.go	/^type logHandler struct {$/;"	t
@@ -10827,7 +10834,7 @@ cluster	cluster/container_test.go	/^package cluster$/;"	p
 AddContainer	cluster/engine.go	/^func (e *Engine) AddContainer(container *Container) error {$/;"	f
 BuildImage	cluster/engine.go	/^func (e *Engine) BuildImage(buildImage *dockerclient.BuildImage) (io.ReadCloser, error) {$/;"	f
 Connect	cluster/engine.go	/^func (e *Engine) Connect(config *tls.Config) error {$/;"	f
-ConnectWithClient	cluster/engine.go	/^func (e *Engine) ConnectWithClient(client dockerclient.Client) error {$/;"	f
+ConnectWithClient	cluster/engine.go	/^func (e *Engine) ConnectWithClient(client dockerclient.Client, virtclient libvirtplusclient.LibvirtplusClient) error {$/;"	f
 Containers	cluster/engine.go	/^func (e *Engine) Containers() Containers {$/;"	f
 Create	cluster/engine.go	/^func (e *Engine) Create(config *ContainerConfig, name string, pullImage bool) (*Container, error) {$/;"	f
 CreateNetwork	cluster/engine.go	/^func (e *Engine) CreateNetwork(request *dockerclient.NetworkCreate) (*dockerclient.NetworkCreateResponse, error) {$/;"	f
@@ -10867,6 +10874,8 @@ delayer	cluster/engine.go	/^type delayer struct {$/;"	t
 emitEvent	cluster/engine.go	/^func (e *Engine) emitEvent(event string) {$/;"	f
 handler	cluster/engine.go	/^func (e *Engine) handler(ev *dockerclient.Event, _ chan error, args ...interface{}) {$/;"	f
 isConnected	cluster/engine.go	/^func (e *Engine) isConnected() bool {$/;"	f
+isLibvirtContainerByConfig	cluster/engine.go	/^func (e *Engine) isLibvirtContainerByConfig(config *ContainerConfig) bool {$/;"	f
+isLibvirtContainerById	cluster/engine.go	/^func (e *Engine) isLibvirtContainerById(Id string) bool {$/;"	f
 minSupportedVersion	cluster/engine.go	/^	requestTimeout = 10 * time.Second$/;"	c
 newDelayer	cluster/engine.go	/^func newDelayer(rangeMin, rangeMax time.Duration) *delayer {$/;"	f
 refreshContainer	cluster/engine.go	/^func (e *Engine) refreshContainer(ID string, full bool) (*Container, error) {$/;"	f

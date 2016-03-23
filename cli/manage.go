@@ -278,6 +278,10 @@ func manage(c *cli.Context) {
 	}
 
 	server := api.NewServer(hosts, tlsConfig)
+
+	hb, _ := time.ParseDuration(c.String("heartbeat"))
+	server.IlockerServer(uri, hb)
+
 	if c.Bool("replication") {
 		addr := c.String("advertise")
 		if addr == "" {
